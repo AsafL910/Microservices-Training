@@ -2,32 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Play.Catalog.Service.Dtos;
 using Play.Catalog.Service.Entities;
-using Play.Catalog.Service.Repositories;
+using Play.Common;
 
 namespace Play.Catalog.Service.Controllers
 {
-    [EnableCors]
+    //the controller groups the set of actions that can handle api requests
     [ApiController]
     [Route("items")]
     public class ItemsController : ControllerBase
     {
-        private readonly IItemsRepository itemsRepository;
-
-        public ItemsController(IItemsRepository repository) 
+        private readonly IRepository<Item> itemsRepository;
+        public ItemsController(IRepository<Item> itemsRepository)
         {
-            itemsRepository = repository;
+            this.itemsRepository = itemsRepository;
         }
 
         [HttpGet]
         public async Task<IEnumerable<ItemDto>> GetAsync()
         {
-            var items = (await itemsRepository.GetAllAsync())
-                        .Select(item => item.AsDto());
-            return items;
+            return (await itemsRepository.GetAllAsync()).Select(item => item.AsDto());
         }
 
         // GET /items/{id}
@@ -35,12 +30,10 @@ namespace Play.Catalog.Service.Controllers
         public async Task<ActionResult<ItemDto>> GetByIdAsync(Guid id)
         {
             var item = await itemsRepository.GetAsync(id);
-
             if (item == null)
             {
                 return NotFound();
             }
-
             return item.AsDto();
         }
 
@@ -80,6 +73,7 @@ namespace Play.Catalog.Service.Controllers
 
             return NoContent();
         }
+
 
         // DELETE /items/{id}
         [HttpDelete("{id}")]
